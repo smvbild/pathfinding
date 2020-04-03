@@ -1,6 +1,5 @@
 import pygame
 import sys
-import random
 
 pygame.init()
 
@@ -15,7 +14,7 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 class Rect(object):
-    def __init__(self, x, y, w, h):
+    def __init__(self, x, y, w, h, x_i, y_i):
         self.typedict = {
                 'empty': {
                         'c': (255,255,255),
@@ -37,13 +36,15 @@ class Rect(object):
         self.y = y
         self.w = w
         self.h = h
+        self.x_i = x_i
+        self.y_i = y_i
 
     def draw(self):
         pygame.draw.rect(screen, self.typedict[self.type]['c'], pygame.Rect(self.x,self.y,self.w,self.h))
 
     def update(self, solving):
         if solving:
-            pass
+            self.is_clicked_solve()
         else:
             self.is_clicked_prep()
 
@@ -68,7 +69,14 @@ class Rect(object):
                     index = len(typedict_keys) - 1
 
                 self.type = typedict_keys[index]
-
+    
+    def is_clicked_solve(self):
+        if pygame.mouse.get_pressed()[0]:
+            pos = pygame.mouse.get_pos()
+            if (pos[0] >= self.x and pos[0] <= self.x + self.w
+                and pos[1] >= self.y and pos[1] <= self.y + self.h):
+                print(self.x_i, self.y_i)
+        
 class Grid(object):
     def __init__(self, width, height, padding=2):
         self.width = int(width)
@@ -106,18 +114,18 @@ class Grid(object):
                 w = self.effective_width_rect
                 h = self.effective_height_rect
 
-                self.rects[i].append(Rect(x, y, w, h))
+                self.rects[i].append(Rect(x, y, w, h, i, j))
 
-    def start_solving():
+    def start_solving(self):
         targets = []
         starts = []
         
         for i in range(self.width):
             for j in range(self.height):
                 if self.rects[i][j].type == 'target':
-                    targets += 1
+                    targets.append(self.rects[i][j])
                 if self.rects[i][j].type == 'start':
-                    starts += 1
+                    starts.append(self.rects[i][j])
 
         if len(targets) > 1:
             print('Grid start_solving: too many targets, expected 1')
@@ -126,7 +134,7 @@ class Grid(object):
             print('Grid start_solving: too many starts, expected 1')
             return
 
-        self.soving = True
+        self.solving = True
         print('Started the pathfinding process.')
 
     def draw(self):
@@ -242,8 +250,8 @@ def main():
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                done = True
-
+                pass
+            
         screen.fill((51,51,51))
 
         draw()
