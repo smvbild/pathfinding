@@ -41,8 +41,8 @@ class Rect(object):
     def draw(self):
         pygame.draw.rect(screen, self.typedict[self.type]['c'], pygame.Rect(self.x,self.y,self.w,self.h))
 
-    def update(self, started):
-        if started:
+    def update(self, solving):
+        if solving:
             pass
         else:
             self.is_clicked_prep()
@@ -74,7 +74,7 @@ class Grid(object):
         self.width = int(width)
         self.height = int(height)
         self.end_width = 2/3 * WIDTH
-        self.started = False
+        self.solving = False
 
         if padding < 1:
             print('Grid __init__: padding too small. Setting padding to 2')
@@ -107,7 +107,28 @@ class Grid(object):
                 h = self.effective_height_rect
 
                 self.rects[i].append(Rect(x, y, w, h))
+
+    def start_solving():
+        targets = []
+        starts = []
         
+        for i in range(self.width):
+            for j in range(self.height):
+                if self.rects[i][j].type == 'target':
+                    targets += 1
+                if self.rects[i][j].type == 'start':
+                    starts += 1
+
+        if len(targets) > 1:
+            print('Grid start_solving: too many targets, expected 1')
+            return
+        if len(starts) > 1:
+            print('Grid start_solving: too many starts, expected 1')
+            return
+
+        self.soving = True
+        print('Started the pathfinding process.')
+
     def draw(self):
         for i in range(self.width):
             for j in range(self.height):
@@ -116,12 +137,14 @@ class Grid(object):
     def update(self):
         for i in range(self.width):
             for j in range(self.height):
-                self.rects[i][j].update(self.started)
+                self.rects[i][j].update(self.solving)
+
 
     def clear(self):
         for i in range(self.width):
             for j in range(self.height):
                 self.rects[i][j].type = 'empty'
+
 
 class Button(object):
     def __init__(self, x, y, w, h, function, grid):
@@ -132,9 +155,8 @@ class Button(object):
         self.function = function
 
         def start():
-            if not grid.started:
-                print('Started the pathfinding process')
-                grid.started = True
+            if not grid.solving:
+                grid.start_solving()
 
         def quit():
             pygame.quit()
@@ -142,7 +164,7 @@ class Button(object):
 
         def clear():
             grid.clear()
-            grid.started = False
+            grid.solving = False
 
         self.funcdict = {
                 'start': start,
